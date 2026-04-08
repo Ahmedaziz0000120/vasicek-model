@@ -8,7 +8,11 @@ from datetime import datetime
 st.set_page_config(page_title="Vasicek Rate Engine", layout="wide", initial_sidebar_state="collapsed")
 
 if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = True
+    params = st.query_params
+    if params.get("theme") == "light":
+        st.session_state.dark_mode = False
+    else:
+        st.session_state.dark_mode = True
 
 D = st.session_state.dark_mode
 T = {
@@ -90,6 +94,8 @@ st.markdown(f"""
 .stSlider>div>div>div{{background:{T['slider_color']} !important;}}
 .stSlider label{{font-family:'Outfit',sans-serif !important;color:{T['sub_color']} !important;font-size:11px !important;}}
 .stButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:white !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else ''}}}
+.stDownloadButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:white !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;padding:10px 16px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else 'box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;'}}}
+.stDownloadButton>button:hover{{opacity:0.9 !important;transform:translateY(-1px) !important;}}
 .stTextInput>div>div>input{{background:{T['input_bg']} !important;color:{T['input_color']} !important;border:1px solid {T['input_border']} !important;border-radius:8px !important;font-family:'JetBrains Mono',monospace !important;font-size:11px !important;}}
 .control-wrap{{background:{T['card_bg']};border:1px solid {T['card_border']};border-radius:12px;padding:16px 20px;margin-bottom:20px;position:relative;z-index:5;}}
 .insight-box{{background:{'rgba(124,58,237,0.06)' if D else 'rgba(37,99,235,0.04)'};border-left:3px solid {T['accent1']};border-radius:0 10px 10px 0;padding:12px 16px;margin-top:10px;margin-bottom:4px;}}
@@ -152,35 +158,39 @@ with toggle_col:
 # ── Init run params in session state (only update on RUN click) ────────────
 if "run_params" not in st.session_state:
     st.session_state.run_params = dict(
+        csv_path=r"C:\Users\kasa\Desktop\assignment\sbp_policy_rate.csv",
         years=10, simulations=500, sample_paths=10, a_val=0.5
     )
 
 with st.container():
     st.markdown('<div class="control-wrap">',unsafe_allow_html=True)
-    c1,c2,c3,c4,c5=st.columns([1,1,1,1,0.8])
-    with c1: years_input=st.slider("Years",1,20,st.session_state.run_params["years"])
-    with c2: simulations_input=st.slider("Sims",100,2000,st.session_state.run_params["simulations"],step=100)
-    with c3: sample_paths_input=st.slider("Paths",5,30,st.session_state.run_params["sample_paths"])
-    with c4: a_val_input=st.slider("Mean Rev.",0.1,2.0,st.session_state.run_params["a_val"],step=0.05)
-    with c5:
+    c1,c2,c3,c4,c5,c6=st.columns([2.5,1,1,1,1,0.8])
+    with c1: csv_path_input=st.text_input("",st.session_state.run_params["csv_path"],label_visibility="collapsed")
+    with c2: years_input=st.slider("Years",1,20,st.session_state.run_params["years"])
+    with c3: simulations_input=st.slider("Sims",100,2000,st.session_state.run_params["simulations"],step=100)
+    with c4: sample_paths_input=st.slider("Paths",5,30,st.session_state.run_params["sample_paths"])
+    with c5: a_val_input=st.slider("Mean Rev.",0.1,2.0,st.session_state.run_params["a_val"],step=0.05)
+    with c6:
         st.markdown("<br>",unsafe_allow_html=True)
         run_clicked=st.button("RUN ▶",use_container_width=True)
     st.markdown('</div>',unsafe_allow_html=True)
 
 if run_clicked:
     st.session_state.run_params = dict(
-        years=years_input, simulations=simulations_input,
-        sample_paths=sample_paths_input, a_val=a_val_input
+        csv_path=csv_path_input, years=years_input,
+        simulations=simulations_input, sample_paths=sample_paths_input,
+        a_val=a_val_input
     )
 
 # Use committed params for all computation
 p = st.session_state.run_params
+csv_path    = p["csv_path"]
 years       = p["years"]
 simulations = p["simulations"]
 sample_paths= p["sample_paths"]
 a_val       = p["a_val"]
 
-try: df=load_data("sbp_policy_rate.csv")
+try: df=load_data(csv_path)
 except Exception as e: st.error(f"Could not load CSV: {e}"); st.stop()
 
 sim,time,r0,b,sigma=run_vasicek(df['Rate'],a_val,years,simulations)

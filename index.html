@@ -758,8 +758,10 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 // ── Launch ─────────────────────────────────────────────────────────────────
 function launch() {
   document.getElementById('exitOverlay').classList.add('active');
+  const isLight = document.body.classList.contains('light');
+  const theme = isLight ? 'light' : 'dark';
   setTimeout(() => {
-    window.open('https://vasicek-model.streamlit.app/', '_blank');
+    window.open('https://vasicek-model.streamlit.app/?theme=' + theme, '_blank');
     setTimeout(() => document.getElementById('exitOverlay').classList.remove('active'), 600);
   }, 700);
 }
