@@ -158,7 +158,7 @@ with toggle_col:
 # ── Init run params in session state (only update on RUN click) ────────────
 if "run_params" not in st.session_state:
     st.session_state.run_params = dict(
-        csv_path=r"C:\Users\kasa\Desktop\assignment\sbp_policy_rate.csv",
+        csv_path="sbp_policy_rate.csv",
         years=10, simulations=500, sample_paths=10, a_val=0.5
     )
 
