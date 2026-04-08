@@ -759,7 +759,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 function launch() {
   document.getElementById('exitOverlay').classList.add('active');
   setTimeout(() => {
-    window.open('https://YOUR-APP-NAME.streamlit.app', '_blank');
+    window.open('https://vasicek-model.streamlit.app/', '_blank');
     setTimeout(() => document.getElementById('exitOverlay').classList.remove('active'), 600);
   }, 700);
 }
