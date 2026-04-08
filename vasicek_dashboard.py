@@ -8,11 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Vasicek Rate Engine", layout="wide", initial_sidebar_state="collapsed")
 
 if "dark_mode" not in st.session_state:
-    params = st.query_params
-    if params.get("theme") == "light":
-        st.session_state.dark_mode = False
-    else:
-        st.session_state.dark_mode = True
+    st.session_state.dark_mode = True
 
 D = st.session_state.dark_mode
 T = {
@@ -94,8 +90,6 @@ st.markdown(f"""
 .stSlider>div>div>div{{background:{T['slider_color']} !important;}}
 .stSlider label{{font-family:'Outfit',sans-serif !important;color:{T['sub_color']} !important;font-size:11px !important;}}
 .stButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:white !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else ''}}}
-.stDownloadButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:white !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;padding:10px 16px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else 'box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;'}}}
-.stDownloadButton>button:hover{{opacity:0.9 !important;transform:translateY(-1px) !important;}}
 .stTextInput>div>div>input{{background:{T['input_bg']} !important;color:{T['input_color']} !important;border:1px solid {T['input_border']} !important;border-radius:8px !important;font-family:'JetBrains Mono',monospace !important;font-size:11px !important;}}
 .control-wrap{{background:{T['card_bg']};border:1px solid {T['card_border']};border-radius:12px;padding:16px 20px;margin-bottom:20px;position:relative;z-index:5;}}
 .insight-box{{background:{'rgba(124,58,237,0.06)' if D else 'rgba(37,99,235,0.04)'};border-left:3px solid {T['accent1']};border-radius:0 10px 10px 0;padding:12px 16px;margin-top:10px;margin-bottom:4px;}}
@@ -136,6 +130,35 @@ def load_data(path):
     df['Date']=pd.to_datetime(df['Date']); df=df.sort_values('Date').reset_index(drop=True)
     df['Rate']=df['Rate']/100; return df
 
+@st.cache_data(ttl=86400)
+def fetch_live_sbp_rate():
+    """Scrape latest policy rate from SBP. Returns (rate_decimal, date_str, error_msg)."""
+    try:
+        import requests, re
+        from bs4 import BeautifulSoup
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        r = requests.get("https://www.sbp.org.pk/m_policy/index.asp", headers=headers, timeout=8)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        text = soup.get_text()
+        match = re.search(r'SBP Policy\s*Rat\w*\s*[\|\s]*(\d+\.?\d*)\s*%', text, re.IGNORECASE)
+        if match:
+            rate = float(match.group(1)) / 100
+            return rate, datetime.now().strftime("%d %b %Y"), None
+        return None, None, "Rate not found on SBP page"
+    except Exception as e:
+        return None, None, str(e)
+
+def append_live_rate(df, live_rate):
+    """If live rate differs from last CSV row, append it as today's entry."""
+    today = pd.Timestamp(datetime.now().date())
+    last_rate = df['Rate'].iloc[-1]
+    if abs(live_rate - last_rate) > 0.0001:
+        new_row = pd.DataFrame({'Date': [today], 'Rate': [live_rate]})
+        df = pd.concat([df, new_row], ignore_index=True)
+    else:
+        df.loc[df.index[-1], 'Date'] = today
+    return df
+
 def run_vasicek(rates,a,years,simulations):
     np.random.seed(42); dt=1/12; steps=int(years/dt)
     b=rates.mean(); sigma=rates.std(); r0=rates.iloc[-1]
@@ -155,43 +178,74 @@ with toggle_col:
         st.session_state.dark_mode=not st.session_state.dark_mode; st.rerun()
     st.markdown("</div>",unsafe_allow_html=True)
 
+# ── Live SBP rate fetch ────────────────────────────────────────────────────
+live_rate, live_date, live_error = fetch_live_sbp_rate()
+
+# Show live data status badge in a fixed corner
+if live_error:
+    st.markdown(f"""
+    <div style="position:fixed;bottom:20px;left:20px;z-index:9999;
+         background:{'#1a0a0a' if D else '#fff3f3'};
+         border:1px solid #ef4444;border-radius:10px;
+         padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;
+         color:#ef4444;max-width:280px;box-shadow:0 4px 20px rgba(239,68,68,0.2);">
+        ⚠ Live data unavailable — showing last known rate<br>
+        <span style="opacity:0.6;font-size:9px;">{live_error[:60]}</span>
+    </div>""", unsafe_allow_html=True)
+    data_source_label = "CSV FALLBACK"
+    data_source_color = "#f59e0b"
+else:
+    st.markdown(f"""
+    <div style="position:fixed;bottom:20px;left:20px;z-index:9999;
+         background:{'#0a1a0a' if D else '#f0fff4'};
+         border:1px solid #10b981;border-radius:10px;
+         padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;
+         color:#10b981;box-shadow:0 4px 20px rgba(16,185,129,0.15);">
+        ● LIVE · SBP Policy Rate: {live_rate*100:.2f}%<br>
+        <span style="opacity:0.6;font-size:9px;">Source: sbp.org.pk · Updated: {live_date}</span>
+    </div>""", unsafe_allow_html=True)
+    data_source_label = "LIVE · SBP"
+    data_source_color = "#10b981"
+
 # ── Init run params in session state (only update on RUN click) ────────────
 if "run_params" not in st.session_state:
     st.session_state.run_params = dict(
-        csv_path="sbp_policy_rate.csv",
         years=10, simulations=500, sample_paths=10, a_val=0.5
     )
 
 with st.container():
     st.markdown('<div class="control-wrap">',unsafe_allow_html=True)
-    c1,c2,c3,c4,c5,c6=st.columns([2.5,1,1,1,1,0.8])
-    with c1: csv_path_input=st.text_input("",st.session_state.run_params["csv_path"],label_visibility="collapsed")
-    with c2: years_input=st.slider("Years",1,20,st.session_state.run_params["years"])
-    with c3: simulations_input=st.slider("Sims",100,2000,st.session_state.run_params["simulations"],step=100)
-    with c4: sample_paths_input=st.slider("Paths",5,30,st.session_state.run_params["sample_paths"])
-    with c5: a_val_input=st.slider("Mean Rev.",0.1,2.0,st.session_state.run_params["a_val"],step=0.05)
-    with c6:
+    c1,c2,c3,c4,c5=st.columns([1,1,1,1,0.8])
+    with c1: years_input=st.slider("Years",1,20,st.session_state.run_params["years"])
+    with c2: simulations_input=st.slider("Sims",100,2000,st.session_state.run_params["simulations"],step=100)
+    with c3: sample_paths_input=st.slider("Paths",5,30,st.session_state.run_params["sample_paths"])
+    with c4: a_val_input=st.slider("Mean Rev.",0.1,2.0,st.session_state.run_params["a_val"],step=0.05)
+    with c5:
         st.markdown("<br>",unsafe_allow_html=True)
         run_clicked=st.button("RUN ▶",use_container_width=True)
     st.markdown('</div>',unsafe_allow_html=True)
 
 if run_clicked:
     st.session_state.run_params = dict(
-        csv_path=csv_path_input, years=years_input,
-        simulations=simulations_input, sample_paths=sample_paths_input,
-        a_val=a_val_input
+        years=years_input, simulations=simulations_input,
+        sample_paths=sample_paths_input, a_val=a_val_input
     )
 
 # Use committed params for all computation
 p = st.session_state.run_params
-csv_path    = p["csv_path"]
 years       = p["years"]
 simulations = p["simulations"]
 sample_paths= p["sample_paths"]
 a_val       = p["a_val"]
 
-try: df=load_data(csv_path)
-except Exception as e: st.error(f"Could not load CSV: {e}"); st.stop()
+try:
+    df = load_data("sbp_policy_rate.csv")
+except Exception as e:
+    st.error(f"Could not load CSV: {e}"); st.stop()
+
+# Merge live rate into dataframe if available
+if live_rate is not None:
+    df = append_live_rate(df, live_rate)
 
 sim,time,r0,b,sigma=run_vasicek(df['Rate'],a_val,years,simulations)
 mean_path=sim.mean(axis=0)
