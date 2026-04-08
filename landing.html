@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vasicek Rate Engine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:          #000000;
+  --bg-about:    rgba(5,0,15,0.97);
+  --topbar-bg:   rgba(0,0,0,0.3);
+  --topbar-border: rgba(255,255,255,0.05);
+  --brand-color: #ffffff;
+  --sub-color:   rgba(255,255,255,0.25);
+  --title-color: #ffffff;
+  --subtitle-color: rgba(255,255,255,0.38);
+  --pill-color:  rgba(255,255,255,0.35);
+  --pill-border: rgba(255,255,255,0.1);
+  --pill-bg:     rgba(255,255,255,0.03);
+  --stat-val:    #a78bfa;
+  --stat-lbl:    rgba(255,255,255,0.25);
+  --divider-mid: rgba(255,255,255,0.15);
+  --cta-color:   #ffffff;
+  --cta-border:  rgba(255,255,255,0.25);
+  --scroll-line: rgba(255,255,255,0.2);
+  --scroll-text: rgba(255,255,255,0.2);
+  --section-title: #ffffff;
+  --card-bg:     rgba(255,255,255,0.03);
+  --card-border: rgba(255,255,255,0.07);
+  --card-text:   rgba(255,255,255,0.5);
+  --card-strong: rgba(255,255,255,0.8);
+  --card-title-c:#ffffff;
+  --formula-bg:  rgba(124,58,237,0.06);
+  --formula-border: rgba(124,58,237,0.2);
+  --formula-eq:  #a78bfa;
+  --formula-desc:rgba(255,255,255,0.35);
+  --step-num:    rgba(124,58,237,0.25);
+  --step-title:  #ffffff;
+  --step-text:   rgba(255,255,255,0.45);
+  --step-border: rgba(255,255,255,0.05);
+  --divider-grad:linear-gradient(90deg,transparent,rgba(124,58,237,0.4),rgba(6,182,212,0.4),transparent);
+  --limit-bg:    rgba(239,68,68,0.04);
+  --limit-border:rgba(239,68,68,0.12);
+  --limit-title: rgba(255,255,255,0.7);
+  --limit-text:  rgba(255,255,255,0.38);
+  --future-bg:   rgba(16,185,129,0.04);
+  --future-border:rgba(16,185,129,0.12);
+  --future-title:rgba(255,255,255,0.7);
+  --future-text: rgba(255,255,255,0.35);
+  --back-top-border: rgba(255,255,255,0.15);
+  --back-top-bg: rgba(255,255,255,0.03);
+  --back-top-color: rgba(255,255,255,0.5);
+  --back-top-label: rgba(255,255,255,0.2);
+  --vignette:    rgba(0,0,0,0.75);
+  --corner-color:rgba(124,58,237,0.4);
+  --accent:      #7c3aed;
+  --accent2:     #06b6d4;
+  --noise-op:    0.4;
+  --canvas-op:   1;
+  --ribbon-col1: #7c3aed;
+  --ribbon-col2: #06b6d4;
+}
+
+body.light {
+  /* Page bg — matches dashboard #f0f2f6 */
+  --bg:          #f0f2f6;
+  --bg-about:    rgba(240,242,246,0.97);
+  /* Topbar — matches dashboard navbar #ffffff */
+  --topbar-bg:   rgba(255,255,255,0.9);
+  --topbar-border: #e0e0e8;
+  /* Text */
+  --brand-color: #0a0a14;
+  --sub-color:   #888888;
+  --title-color: #0a0a14;
+  --subtitle-color: #888888;
+  /* Pills */
+  --pill-color:  #555588;
+  --pill-border: #ddddee;
+  --pill-bg:     #f0f0f8;
+  /* Stats — accent matches dashboard #2563eb */
+  --stat-val:    #2563eb;
+  --stat-lbl:    #999999;
+  --divider-mid: #e0e0e8;
+  /* CTA */
+  --cta-color:   #0a0a14;
+  --cta-border:  #0a0a14;
+  --scroll-line: rgba(10,10,20,0.2);
+  --scroll-text: #aaaaaa;
+  /* About section */
+  --section-title: #0a0a14;
+  /* Cards — matches dashboard card #ffffff with border #e0e0e8 */
+  --card-bg:     #ffffff;
+  --card-border: #e0e0e8;
+  --card-text:   #666688;
+  --card-strong: #0a0a14;
+  --card-title-c:#0a0a14;
+  /* Formula */
+  --formula-bg:  rgba(37,99,235,0.04);
+  --formula-border: rgba(37,99,235,0.2);
+  --formula-eq:  #2563eb;
+  --formula-desc:#999999;
+  /* Steps */
+  --step-num:    rgba(37,99,235,0.18);
+  --step-title:  #0a0a14;
+  --step-text:   #888888;
+  --step-border: #e0e0e8;
+  --divider-grad:linear-gradient(90deg,transparent,rgba(37,99,235,0.35),rgba(220,38,38,0.3),transparent);
+  /* Limitations */
+  --limit-bg:    rgba(239,68,68,0.04);
+  --limit-border:#f0e0e0;
+  --limit-title: #0a0a14;
+  --limit-text:  #888888;
+  /* Future */
+  --future-bg:   rgba(16,185,129,0.04);
+  --future-border:#d0ede5;
+  --future-title:#0a0a14;
+  --future-text: #888888;
+  /* Back to top */
+  --back-top-border: #e0e0e8;
+  --back-top-bg: #ffffff;
+  --back-top-color: #555588;
+  --back-top-label: #aaaaaa;
+  /* Effects */
+  --vignette:    rgba(240,242,246,0.4);
+  --corner-color:rgba(37,99,235,0.3);
+  --accent:      #2563eb;
+  --accent2:     #dc2626;
+  --noise-op:    0.08;
+  --canvas-op:   0.6;
+  --ribbon-col1: #2563eb;
+  --ribbon-col2: #dc2626;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body { width:100%; background:var(--bg); overflow-x:hidden; transition:background 0.4s ease; }
+
+canvas#bg { position:fixed; inset:0; z-index:0; opacity:var(--canvas-op); transition:opacity 0.4s; }
+.noise { position:fixed; inset:0; z-index:1; pointer-events:none; opacity:var(--noise-op); transition:opacity 0.4s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); }
+.scan { position:fixed; inset:0; z-index:2; pointer-events:none; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px); }
+.vignette { position:fixed; inset:0; z-index:3; pointer-events:none; background:radial-gradient(ellipse at center, transparent 50%, var(--vignette) 100%); transition:background 0.4s; }
+
+/* ── TOPBAR ── */
+.topbar {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 48px;
+  border-bottom:1px solid var(--topbar-border);
+  background:var(--topbar-bg);
+  backdrop-filter:blur(14px);
+  animation: fadeDown 0.8s 0.2s both;
+  transition: background 0.4s, border-color 0.4s;
+}
+.topbar-brand { font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:3px; color:var(--brand-color); transition:color 0.4s; }
+.topbar-brand span { color:var(--accent); }
+.topbar-right { display:flex; align-items:center; gap:20px; }
+.topbar-label { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:2px; color:var(--sub-color); transition:color 0.4s; }
+.live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981; margin-right:8px; animation:blink 2s infinite; }
+
+/* Toggle button */
+.theme-toggle {
+  display:flex; align-items:center; gap:8px; cursor:pointer;
+  background:var(--card-bg); border:1px solid var(--card-border);
+  border-radius:20px; padding:6px 14px 6px 10px;
+  transition:all 0.3s ease;
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--sub-color); letter-spacing:1px;
+}
+.theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
+.toggle-track {
+  width:32px; height:18px; border-radius:9px;
+  background:rgba(124,58,237,0.3); border:1px solid rgba(124,58,237,0.4);
+  position:relative; transition:background 0.3s;
+  flex-shrink:0;
+}
+body.light .toggle-track { background:rgba(109,40,217,0.2); }
+.toggle-thumb {
+  position:absolute; top:2px; left:2px;
+  width:12px; height:12px; border-radius:50%;
+  background:#7c3aed; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), background 0.3s;
+}
+body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
+
+/* ── HERO SECTION ── */
+#hero {
+  position:relative; z-index:10;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; padding:100px 24px 60px; text-align:center;
+}
+
+.eyebrow {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; letter-spacing:5px; color:#4af; text-transform:uppercase;
+  margin-bottom:32px; display:flex; align-items:center; gap:14px;
+  animation:fadeUp 0.8s 0.4s both;
+}
+.eyebrow::before, .eyebrow::after { content:''; width:50px; height:1px; }
+.eyebrow::before { background:linear-gradient(90deg,transparent,#4af); }
+.eyebrow::after  { background:linear-gradient(90deg,#4af,transparent); }
+
+.title-wrap { overflow:hidden; margin-bottom:4px; }
+.title-line {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,11vw,148px); line-height:0.88;
+  color:var(--title-color); letter-spacing:3px; display:block;
+  animation:slideUp 1s cubic-bezier(0.16,1,0.3,1) both;
+  transition:color 0.4s;
+}
+.title-line:nth-child(1) { animation-delay:0.5s; }
+.title-line.accent {
+  animation-delay:0.65s;
+  background:linear-gradient(135deg,#7c3aed 0%,#a78bfa 40%,#06b6d4 80%,#4af 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 40px rgba(124,58,237,0.6));
+}
+
+.subtitle {
+  font-family:'Outfit',sans-serif; font-size:15px; color:var(--subtitle-color);
+  max-width:540px; line-height:1.8; font-weight:300; margin-top:20px;
+  animation:fadeUp 0.8s 0.9s both; transition:color 0.4s;
+}
+
+.pills { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:28px; animation:fadeUp 0.8s 1.05s both; }
+.pill {
+  font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--pill-color); border:1px solid var(--pill-border);
+  padding:6px 14px; border-radius:20px; background:var(--pill-bg); transition:all 0.3s;
+}
+.pill:hover { border-color:rgba(124,58,237,0.6); color:rgba(167,139,250,0.9); background:rgba(124,58,237,0.08); }
+
+.stats { display:flex; gap:56px; margin-top:36px; animation:fadeUp 0.8s 1.15s both; }
+.stat { text-align:center; }
+.stat-val { font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:500; color:var(--stat-val); letter-spacing:1px; transition:color 0.4s; }
+.stat-lbl { font-family:'Outfit',sans-serif; font-size:9px; color:var(--stat-lbl); letter-spacing:2.5px; text-transform:uppercase; margin-top:5px; transition:color 0.4s; }
+
+.divider-line { width:1px; height:40px; background:linear-gradient(to bottom,transparent,var(--divider-mid),transparent); margin-top:40px; animation:fadeUp 0.8s 1.2s both; }
+
+.cta-wrap { margin-top:40px; animation:fadeUp 0.8s 1.3s both; }
+.cta {
+  position:relative; overflow:hidden;
+  font-family:'Outfit',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:3px; text-transform:uppercase;
+  color:var(--cta-color); background:transparent;
+  border:1px solid var(--cta-border);
+  padding:18px 60px; cursor:pointer; border-radius:2px;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.cta::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(135deg,#7c3aed,#a855f7,#06b6d4);
+  transform:translateX(-100%); transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.cta:hover::before { transform:translateX(0); }
+.cta:hover { border-color:transparent; color:#fff; transform:translateY(-3px); box-shadow:0 24px 60px rgba(124,58,237,0.35); }
+.cta:active { transform:translateY(-1px); }
+.cta span { position:relative; z-index:1; }
+.cta-arrow { display:inline-block; margin-left:10px; transition:transform 0.3s; }
+.cta:hover .cta-arrow { transform:translateX(6px); }
+
+.scroll-hint { margin-top:48px; display:flex; flex-direction:column; align-items:center; gap:8px; animation:fadeUp 0.8s 1.5s both; }
+.scroll-line { width:1px; height:36px; background:linear-gradient(to bottom,var(--scroll-line),transparent); animation:scrollPulse 2.5s infinite; }
+.scroll-text { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:3px; color:var(--scroll-text); text-transform:uppercase; }
+
+/* ── ABOUT SECTION ── */
+#about {
+  position:relative; z-index:10;
+  background:linear-gradient(to bottom, transparent 0%, var(--bg-about) 8%, var(--bg-about) 92%, transparent 100%);
+  padding:100px 0 120px; transition:background 0.4s;
+}
+
+.about-inner { max-width:960px; margin:0 auto; padding:0 48px; }
+
+.section-eyebrow {
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  letter-spacing:4px; color:var(--accent); text-transform:uppercase;
+  margin-bottom:16px; display:flex; align-items:center; gap:12px;
+}
+.section-eyebrow::before { content:''; width:30px; height:1px; background:var(--accent); }
+
+.section-title {
+  font-family:'Bebas Neue',sans-serif; font-size:clamp(40px,5vw,64px);
+  color:var(--section-title); letter-spacing:2px; line-height:1; margin-bottom:48px; transition:color 0.4s;
+}
+.section-title span { color:var(--accent); }
+
+/* About grid */
+.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:64px; }
+.about-card {
+  background:var(--card-bg); border:1px solid var(--card-border);
+  border-radius:16px; padding:32px;
+  border-top:2px solid transparent;
+  transition:border-color 0.3s, transform 0.3s, box-shadow 0.3s, background 0.4s;
+}
+.about-card:hover { border-top-color:var(--accent); transform:translateY(-4px); box-shadow:0 20px 60px rgba(124,58,237,0.15); }
+.about-card.full { grid-column:1/-1; }
+.card-icon { font-size:28px; margin-bottom:16px; }
+.card-title { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--card-title-c); letter-spacing:1px; margin-bottom:10px; transition:color 0.4s; }
+.card-text { font-family:'Outfit',sans-serif; font-size:14px; color:var(--card-text); line-height:1.8; font-weight:300; transition:color 0.4s; }
+.card-text strong { color:var(--card-strong); font-weight:500; }
+
+/* Formula block */
+.formula-block {
+  background:var(--formula-bg); border:1px solid var(--formula-border);
+  border-radius:12px; padding:28px 32px; margin:32px 0;
+  font-family:'JetBrains Mono',monospace; transition:background 0.4s, border-color 0.4s;
+}
+.formula-label { font-size:9px; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:12px; }
+.formula-eq { font-size:clamp(13px,2vw,17px); color:var(--formula-eq); letter-spacing:0.5px; line-height:2; transition:color 0.4s; }
+.formula-eq .var { color:#06b6d4; }
+.formula-desc { font-size:11px; color:var(--formula-desc); margin-top:16px; line-height:2; transition:color 0.4s; }
+
+/* Steps */
+.steps { display:flex; flex-direction:column; gap:0; margin-top:48px; }
+.step { display:flex; gap:28px; align-items:flex-start; padding:28px 0; border-bottom:1px solid var(--step-border); }
+.step:last-child { border-bottom:none; }
+.step-num {
+  font-family:'Bebas Neue',sans-serif; font-size:48px; line-height:1;
+  color:var(--step-num); letter-spacing:2px; min-width:60px;
+  transition:color 0.3s;
+}
+.step:hover .step-num { color:var(--accent); opacity:0.7; }
+.step-content { flex:1; }
+.step-title { font-family:'Outfit',sans-serif; font-size:16px; font-weight:600; color:var(--step-title); margin-bottom:8px; transition:color 0.4s; }
+.step-text { font-family:'Outfit',sans-serif; font-size:14px; color:var(--step-text); line-height:1.8; font-weight:300; transition:color 0.4s; }
+
+/* Divider between sections */
+.section-divider {
+  width:100%; height:1px;
+  background:var(--divider-grad);
+  margin:0 auto 64px; max-width:960px;
+}
+
+/* Back to top */
+.back-top-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:60px 0 80px; position:relative; z-index:10;
+}
+.back-top-label { font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:3px; color:var(--back-top-label); text-transform:uppercase; transition:color 0.4s; }
+.back-top-btn {
+  width:52px; height:52px; border-radius:50%;
+  border:1px solid var(--back-top-border);
+  background:var(--back-top-bg);
+  color:var(--back-top-color);
+  font-size:20px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.3s ease;
+  backdrop-filter:blur(10px);
+}
+.back-top-btn:hover {
+  border-color:rgba(124,58,237,0.7);
+  background:rgba(124,58,237,0.15);
+  color:#a78bfa;
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(124,58,237,0.3);
+}
+
+/* ── LIMITATIONS ── */
+.limits-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:32px; }
+.limit-card {
+  background:var(--limit-bg); border:1px solid var(--limit-border);
+  border-radius:12px; padding:22px 24px;
+  transition:border-color 0.3s, transform 0.3s, background 0.4s;
+}
+.limit-card:hover { border-color:rgba(239,68,68,0.35); transform:translateY(-3px); }
+.limit-card-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.limit-icon { font-size:16px; }
+.limit-title { font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--limit-title); transition:color 0.4s; }
+.limit-text { font-family:'Outfit',sans-serif; font-size:12.5px; color:var(--limit-text); line-height:1.7; font-weight:300; transition:color 0.4s; }
+
+.future-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.future-card {
+  background:var(--future-bg); border:1px solid var(--future-border);
+  border-radius:12px; padding:20px 22px;
+  transition:border-color 0.3s, transform 0.3s, background 0.4s;
+}
+.future-card:hover { border-color:rgba(16,185,129,0.35); transform:translateY(-3px); }
+.future-tag { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:2px; text-transform:uppercase; color:#10b981; margin-bottom:8px; }
+.future-title { font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; color:var(--future-title); margin-bottom:6px; transition:color 0.4s; }
+.future-text { font-family:'Outfit',sans-serif; font-size:12px; color:var(--future-text); line-height:1.6; font-weight:300; transition:color 0.4s; }
+
+/* Corner decorations */
+.corner { position:fixed; z-index:10; width:40px; height:40px; pointer-events:none; }
+.corner.tl { top:80px; left:24px; border-top:1px solid var(--corner-color); border-left:1px solid var(--corner-color); animation:fadeIn 1s 1.8s both; }
+.corner.tr { top:80px; right:24px; border-top:1px solid var(--corner-color); border-right:1px solid var(--corner-color); animation:fadeIn 1s 1.8s both; }
+
+/* Exit overlay */
+.exit-overlay { position:fixed; inset:0; z-index:200; background:#000; opacity:0; pointer-events:none; transition:opacity 0.8s ease; }
+.exit-overlay.active { opacity:1; pointer-events:all; }
+
+/* Scroll reveal */
+.reveal { opacity:0; transform:translateY(30px); transition:opacity 0.8s ease, transform 0.8s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+@keyframes fadeUp   { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp  { from{opacity:0;transform:translateY(100%)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes scrollPulse { 0%,100%{opacity:0.2;transform:scaleY(1)} 50%{opacity:0.6;transform:scaleY(1.3)} }
+
+@media(max-width:640px){
+  .about-grid,.limits-grid,.future-grid{grid-template-columns:1fr;}
+  .stats{gap:28px;}
+  .topbar{padding:16px 20px;}
+  .about-inner{padding:0 24px;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="noise"></div>
+<div class="scan"></div>
+<div class="vignette"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+
+<div class="topbar">
+  <div class="topbar-brand">VASICEK <span>ENGINE</span></div>
+  <div class="topbar-right">
+    <div class="topbar-label"><span class="live-dot"></span>SBP · PKR · STOCHASTIC MODEL</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span id="themeLabel">LIGHT</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="eyebrow">Stochastic Interest Rate Modelling</div>
+
+  <div class="title-wrap">
+    <span class="title-line">VASICEK</span>
+    <span class="title-line accent">RATE ENGINE</span>
+  </div>
+
+  <p class="subtitle">
+    A cinematic simulation of Pakistan's monetary policy futures —
+    powered by mean-reverting stochastic differential equations
+    across time.
+  </p>
+
+  <div class="pills">
+    <span class="pill">Vasicek SDE</span>
+    <span class="pill">3D Surface Plot</span>
+    <span class="pill">SBP Policy Rate</span>
+    <span class="pill">500 Paths</span>
+    <span class="pill">Confidence Bands</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val">500+</div><div class="stat-lbl">Simulated Paths</div></div>
+    <div class="stat"><div class="stat-val">20Y</div><div class="stat-lbl">Max Horizon</div></div>
+    <div class="stat"><div class="stat-val">3D</div><div class="stat-lbl">Visualisation</div></div>
+    <div class="stat"><div class="stat-val">95%</div><div class="stat-lbl">Confidence Band</div></div>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <div class="cta-wrap">
+    <button class="cta" onclick="launch()">
+      <span>Launch Simulation <span class="cta-arrow">→</span></span>
+    </button>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <div class="scroll-text">scroll to explore</div>
+  </div>
+</section>
+
+<!-- ── ABOUT SECTION ── -->
+<section id="about">
+  <div class="about-inner">
+
+    <!-- What is this? -->
+    <div class="reveal">
+      <div class="section-eyebrow">About the Project</div>
+      <div class="section-title">WHAT IS THIS <span>PROJECT?</span></div>
+    </div>
+
+    <div class="about-grid reveal">
+      <div class="about-card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">The Goal</div>
+        <div class="card-text">
+          This project simulates the <strong>future trajectory of Pakistan's policy interest rate</strong> as set by the State Bank of Pakistan (SBP). Rather than making a single prediction, it generates hundreds of plausible future scenarios, giving a probabilistic view of where rates could go.
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="card-icon">🏦</div>
+        <div class="card-title">Why It Matters</div>
+        <div class="card-text">
+          Interest rates drive borrowing costs, inflation, currency value, and investment decisions. By simulating the rate's future distribution, banks, investors, and policymakers can <strong>quantify interest rate risk</strong> and make better-informed decisions.
+        </div>
+      </div>
+      <div class="about-card full">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">The Data</div>
+        <div class="card-text">
+          The model is calibrated using <strong>historical SBP policy rate data</strong>. From this data, we estimate three key parameters: the long-run average rate the market reverts toward, the speed of that reversion, and the random volatility in rate changes. These parameters then drive the simulation forward in time.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider reveal"></div>
+
+    <!-- The Model -->
+    <div class="reveal">
+      <div class="section-eyebrow">The Mathematics</div>
+      <div class="section-title">THE <span>VASICEK</span> MODEL</div>
+    </div>
+
+    <div class="about-card reveal" style="margin-bottom:24px;">
+      <div class="card-text">
+        The <strong>Vasicek model</strong> (1977) is one of the foundational models in quantitative finance for describing how interest rates evolve over time. Unlike a random walk, it assumes rates are pulled back toward a long-run equilibrium — a property called <strong>mean reversion</strong>. This reflects the real-world observation that rates don't drift to infinity; central banks anchor them around target levels.
+      </div>
+    </div>
+
+    <div class="formula-block reveal">
+      <div class="formula-label">Stochastic Differential Equation</div>
+      <div class="formula-eq">
+        d<span class="var">r</span>(t) = <span class="var">a</span> · ( <span class="var">b</span> − <span class="var">r</span>(t) ) · dt  +  <span class="var">σ</span> · d<span class="var">W</span>(t)
+      </div>
+      <div class="formula-desc">
+        <span class="var">r(t)</span> = interest rate at time t &nbsp;·&nbsp;
+        <span class="var">a</span> = speed of mean reversion &nbsp;·&nbsp;
+        <span class="var">b</span> = long-run mean rate<br>
+        <span class="var">σ</span> = volatility of rate changes &nbsp;·&nbsp;
+        <span class="var">dW(t)</span> = Wiener process (random shock)
+      </div>
+    </div>
+
+    <div class="section-divider reveal" style="margin-top:64px;"></div>
+
+    <!-- How it works -->
+    <div class="reveal">
+      <div class="section-eyebrow">The Process</div>
+      <div class="section-title">HOW IT <span>WORKS</span></div>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Load Historical Data</div>
+          <div class="step-text">The app reads the SBP policy rate CSV file containing historical rate decisions. This gives us a real time series to work with — the actual rate Pakistan's central bank has set over the years.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Estimate Parameters</div>
+          <div class="step-text">From the historical data, three parameters are calculated: the <strong>long-run mean (b)</strong> as the historical average rate, <strong>volatility (σ)</strong> as the standard deviation of rate changes, and the <strong>mean reversion speed (a)</strong> which you can adjust in the simulator.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Simulate Paths</div>
+          <div class="step-text">Using the discretised Vasicek equation, the model simulates 500 independent future rate paths by stepping forward in monthly intervals. At each step, a random shock drawn from a normal distribution is added, creating the characteristic stochastic spread you see in the charts.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Visualise & Analyse</div>
+          <div class="step-text">All 500 paths are aggregated to produce the mean forecast, 68% and 95% confidence bands, and a 3D probability density surface showing exactly where rates are most likely to land at each point in time. The terminal distribution histogram shows the full spread of possible rates at the end of your chosen horizon.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider reveal" style="margin-top:64px;"></div>
+
+    <!-- Limitations -->
+    <div class="reveal">
+      <div class="section-eyebrow">Honest Assessment</div>
+      <div class="section-title">LIMITATIONS & <span>FUTURE WORK</span></div>
+    </div>
+
+    <div class="limits-grid reveal">
+      <div class="limit-card">
+        <div class="limit-card-head"><span class="limit-icon">⚠️</span><span class="limit-title">No External Factors</span></div>
+        <div class="limit-text">The model only uses the rate's own history. Real-world SBP decisions are driven by inflation, GDP, unemployment, PKR/USD exchange rate, and global rates — none of which are captured here.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-card-head"><span class="limit-icon">📉</span><span class="limit-title">Negative Rates Possible</span></div>
+        <div class="limit-text">Vasicek's math can produce negative interest rates — impossible in Pakistan's monetary reality. This is a known structural flaw of the single-factor model.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-card-head"><span class="limit-icon">🔒</span><span class="limit-title">Fixed Parameters</span></div>
+        <div class="limit-text">Mean reversion speed, long-run mean, and volatility are held constant. Pakistan's macro environment has shifted dramatically across regimes, so these likely change over time.</div>
+      </div>
+      <div class="limit-card">
+        <div class="limit-card-head"><span class="limit-icon">📋</span><span class="limit-title">Short Data Window</span></div>
+        <div class="limit-text">Calibrated on a limited historical sample. A longer or different window could yield meaningfully different parameters and simulation outcomes.</div>
+      </div>
+    </div>
+
+    <div class="future-grid reveal">
+      <div class="future-card">
+        <div class="future-tag">Extension 01</div>
+        <div class="future-title">VAR Model</div>
+        <div class="future-text">Include CPI, GDP, unemployment, and exchange rate in a Vector Autoregression framework to capture macro interdependencies.</div>
+      </div>
+      <div class="future-card">
+        <div class="future-tag">Extension 02</div>
+        <div class="future-title">CIR Model</div>
+        <div class="future-text">The Cox-Ingersoll-Ross model extends Vasicek while constraining rates to stay positive — more realistic for Pakistan's context.</div>
+      </div>
+      <div class="future-card">
+        <div class="future-tag">Extension 03</div>
+        <div class="future-title">Regime Switching</div>
+        <div class="future-text">A two-state Markov model to reflect Pakistan's distinct tightening and easing cycles with time-varying parameters.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── BACK TO TOP ── -->
+<div class="back-top-wrap">
+  <div class="back-top-label">Back to top</div>
+  <button class="back-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+</div>
+
+<div class="exit-overlay" id="exitOverlay"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ── Three.js background ────────────────────────────────────────────────────
+const threeState = { ribbons: [], renderer: null, scene: null };
+
+(function() {
+  const canvas = document.getElementById('bg');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  threeState.renderer = renderer;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  const scene = new THREE.Scene();
+  threeState.scene = scene;
+  const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 30);
+
+  function getRibbonColors() {
+    const style = getComputedStyle(document.body);
+    return {
+      c1: style.getPropertyValue('--ribbon-col1').trim() || '#7c3aed',
+      c2: style.getPropertyValue('--ribbon-col2').trim() || '#06b6d4',
+    };
+  }
+
+  const ribbons = [];
+  const { c1, c2 } = getRibbonColors();
+  for (let i = 0; i < 50; i++) {
+    const pts = [];
+    const baseY = (Math.random() - 0.5) * 24;
+    const amp   = Math.random() * 4 + 0.5;
+    const freq  = Math.random() * 0.4 + 0.05;
+    const phase = Math.random() * Math.PI * 2;
+    const zPos  = (Math.random() - 0.5) * 20;
+    for (let x = -60; x <= 60; x += 0.8)
+      pts.push(new THREE.Vector3(x, baseY + Math.sin(x * freq + phase) * amp, zPos));
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({
+      color: new THREE.Color(Math.random() > 0.4 ? c1 : c2),
+      opacity: Math.random() * 0.18 + 0.06, transparent: true,
+    });
+    const line = new THREE.Line(geo, mat);
+    line.userData = { baseY, amp, freq, phase, speed: Math.random() * 0.004 + 0.001, zPos, useC1: Math.random() > 0.4 };
+    scene.add(line); ribbons.push(line);
+  }
+  threeState.ribbons = ribbons;
+
+  const N = 3000, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N * 3; i++) pos[i] = (Math.random() - 0.5) * 150;
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x7c3aed, size: 0.06, transparent: true, opacity: 0.5 }));
+  scene.add(particles);
+  threeState.particles = particles;
+
+  const grid = new THREE.GridHelper(120, 50, 0x110033, 0x0a001a);
+  grid.position.y = -18; scene.add(grid);
+
+  const orb = new THREE.Mesh(new THREE.SphereGeometry(6,32,32), new THREE.MeshBasicMaterial({color:0x3b0764,transparent:true,opacity:0.06,wireframe:true}));
+  orb.position.set(12,2,-8); scene.add(orb);
+  const orb2 = new THREE.Mesh(new THREE.SphereGeometry(4,24,24), new THREE.MeshBasicMaterial({color:0x0e7490,transparent:true,opacity:0.05,wireframe:true}));
+  orb2.position.set(-14,-4,-5); scene.add(orb2);
+
+  let t = 0;
+  (function animate() {
+    requestAnimationFrame(animate); t += 0.008;
+    ribbons.forEach((ribbon, idx) => {
+      ribbon.userData.phase += ribbon.userData.speed;
+      const { baseY, amp, freq, phase, zPos } = ribbon.userData;
+      const pts = [];
+      for (let x = -60; x <= 60; x += 0.8)
+        pts.push(new THREE.Vector3(x, baseY + Math.sin(x * freq + phase) * amp, zPos));
+      ribbon.geometry.setFromPoints(pts);
+      // In light mode boost opacity so ribbons are clearly visible
+      const isLight = document.body.classList.contains('light');
+      const baseOp = isLight ? 0.25 : 0.02;
+      const peakOp = isLight ? 0.55 : 0.1;
+      ribbon.material.opacity = baseOp + Math.abs(Math.sin(t * 0.4 + idx * 0.3)) * peakOp;
+    });
+    orb.rotation.y += 0.003; orb.rotation.x += 0.001;
+    orb2.rotation.y -= 0.002; orb2.rotation.z += 0.001;
+    camera.position.x = Math.sin(t * 0.04) * 4;
+    camera.position.y = Math.cos(t * 0.03) * 2;
+    camera.lookAt(scene.position);
+    renderer.render(scene, camera);
+  })();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+
+// ── Theme toggle ───────────────────────────────────────────────────────────
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  document.getElementById('themeLabel').textContent = isLight ? 'DARK' : 'LIGHT';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
+  // Re-colour Three.js ribbons to match new theme
+  setTimeout(() => {
+    const style = getComputedStyle(document.body);
+    const c1 = style.getPropertyValue('--ribbon-col1').trim();
+    const c2 = style.getPropertyValue('--ribbon-col2').trim();
+    threeState.ribbons.forEach(ribbon => {
+      ribbon.material.color = new THREE.Color(ribbon.userData.useC1 ? c1 : c2);
+    });
+  }, 50);
+}
+// Restore saved preference
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.body.classList.add('light');
+    const lbl = document.getElementById('themeLabel');
+    if (lbl) lbl.textContent = 'DARK';
+  }
+})();
+
+// ── Scroll reveal ──────────────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Launch ─────────────────────────────────────────────────────────────────
+function launch() {
+  document.getElementById('exitOverlay').classList.add('active');
+  setTimeout(() => {
+    window.open('https://YOUR-APP-NAME.streamlit.app', '_blank');
+    setTimeout(() => document.getElementById('exitOverlay').classList.remove('active'), 600);
+  }, 700);
+}
+</script>
+</body>
+</html>
