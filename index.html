@@ -123,12 +123,12 @@ body.light {
   --back-top-color: #555588;
   --back-top-label: #aaaaaa;
   /* Effects */
-  --vignette:    rgba(240,242,246,0.4);
+  --vignette:    rgba(240,242,246,0.65);
   --corner-color:rgba(37,99,235,0.3);
   --accent:      #2563eb;
   --accent2:     #dc2626;
   --noise-op:    0.08;
-  --canvas-op:   0.6;
+  --canvas-op:   0.35;
   --ribbon-col1: #2563eb;
   --ribbon-col2: #dc2626;
 }
@@ -221,6 +221,22 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
   font-family:'Outfit',sans-serif; font-size:15px; color:var(--subtitle-color);
   max-width:540px; line-height:1.8; font-weight:300; margin-top:20px;
   animation:fadeUp 0.8s 0.9s both; transition:color 0.4s;
+}
+/* Light mode hero text backdrop — makes text readable over 3D animation */
+body.light #hero {
+  background: radial-gradient(ellipse at center, rgba(240,242,246,0.72) 0%, rgba(240,242,246,0.45) 55%, transparent 80%);
+}
+body.light .title-line {
+  text-shadow: 0 2px 20px rgba(240,242,246,0.9), 0 0 40px rgba(240,242,246,0.6);
+}
+body.light .subtitle {
+  text-shadow: 0 1px 8px rgba(240,242,246,0.95);
+}
+body.light .eyebrow {
+  text-shadow: 0 1px 6px rgba(240,242,246,0.9);
+}
+body.light .stat-val, body.light .stat-lbl {
+  text-shadow: 0 1px 6px rgba(240,242,246,0.9);
 }
 
 .pills { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:28px; animation:fadeUp 0.8s 1.05s both; }
@@ -502,7 +518,7 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
         <div class="card-icon">🎯</div>
         <div class="card-title">The Data</div>
         <div class="card-text">
-          The model is calibrated using <strong>live SBP policy rate data</strong>, fetched automatically from <strong>sbp.org.pk</strong> every time the app loads — no manual updates needed. The current policy rate is always sourced directly from the State Bank of Pakistan. If the live feed is temporarily unavailable, the app displays a warning and falls back to the last known rate seamlessly.
+          The model is calibrated using <strong>historical SBP policy rate data</strong>. From this data, we estimate three key parameters: the long-run average rate the market reverts toward, the speed of that reversion, and the random volatility in rate changes. These parameters then drive the simulation forward in time.
         </div>
       </div>
     </div>
@@ -548,7 +564,7 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
         <div class="step-num">01</div>
         <div class="step-content">
           <div class="step-title">Load Historical Data</div>
-          <div class="step-text">The app automatically fetches the latest SBP policy rate directly from <strong>sbp.org.pk</strong> in real time. No manual CSV updates are ever needed — the moment SBP announces a new rate, the simulator reflects it. A live status indicator in the dashboard confirms the data source and timestamp.</div>
+          <div class="step-text">The app reads the SBP policy rate CSV file containing historical rate decisions. This gives us a real time series to work with — the actual rate Pakistan's central bank has set over the years.</div>
         </div>
       </div>
       <div class="step">
@@ -759,7 +775,6 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 function launch() {
   document.getElementById('exitOverlay').classList.add('active');
   setTimeout(() => {
-    const theme = document.body.classList.contains('light') ? 'light' : 'dark';
     window.open('https://vasicek-model.streamlit.app/?theme=' + theme, '_blank');
     setTimeout(() => document.getElementById('exitOverlay').classList.remove('active'), 600);
   }, 700);
