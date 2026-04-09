@@ -213,7 +213,8 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
 .title-line.accent {
   animation-delay:0.65s;
   background:linear-gradient(135deg,#7c3aed 0%,#a78bfa 40%,#06b6d4 80%,#4af 100%);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  display:inline-block;
   filter:drop-shadow(0 0 40px rgba(124,58,237,0.6));
 }
 
