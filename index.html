@@ -53,7 +53,7 @@
   --back-top-bg: rgba(255,255,255,0.03);
   --back-top-color: rgba(255,255,255,0.5);
   --back-top-label: rgba(255,255,255,0.2);
-  --vignette:    rgba(0,0,0,0.75);
+  --vignette:    rgba(0,0,0,0);
   --corner-color:rgba(124,58,237,0.4);
   --accent:      #7c3aed;
   --accent2:     #06b6d4;
@@ -123,7 +123,7 @@ body.light {
   --back-top-color: #555588;
   --back-top-label: #aaaaaa;
   /* Effects */
-  --vignette:    rgba(240,242,246,0.65);
+  --vignette:    rgba(240,242,246,0);
   --corner-color:rgba(37,99,235,0.3);
   --accent:      #2563eb;
   --accent2:     #dc2626;
@@ -201,7 +201,7 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
 .eyebrow::before { background:linear-gradient(90deg,transparent,#4af); }
 .eyebrow::after  { background:linear-gradient(90deg,#4af,transparent); }
 
-.title-wrap { overflow:hidden; margin-bottom:4px; }
+.title-wrap { margin-bottom:4px; }
 .title-line {
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(72px,11vw,148px); line-height:0.88;
@@ -222,10 +222,7 @@ body.light .toggle-thumb { transform:translateX(14px); background:#6d28d9; }
   max-width:540px; line-height:1.8; font-weight:300; margin-top:20px;
   animation:fadeUp 0.8s 0.9s both; transition:color 0.4s;
 }
-/* Light mode hero text backdrop — makes text readable over 3D animation */
-body.light #hero {
-  background: radial-gradient(ellipse at center, rgba(240,242,246,0.72) 0%, rgba(240,242,246,0.45) 55%, transparent 80%);
-}
+
 body.light .title-line {
   text-shadow: 0 2px 20px rgba(240,242,246,0.9), 0 0 40px rgba(240,242,246,0.6);
 }
