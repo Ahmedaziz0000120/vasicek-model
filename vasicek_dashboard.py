@@ -89,9 +89,11 @@ st.markdown(f"""
 .chart-tag{{font-family:'JetBrains Mono',monospace;font-size:9px;background:{T['chart_tag_bg']};color:{T['chart_tag_col']};padding:3px 10px;border-radius:20px;font-weight:600;letter-spacing:1px;border:1px solid {T['card_border']};}}
 .stSlider>div>div>div{{background:{T['slider_color']} !important;}}
 .stSlider label{{font-family:'Outfit',sans-serif !important;color:{T['sub_color']} !important;font-size:11px !important;}}
-.stButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:white !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else ''}}}
+.stButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:#ffffff !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;padding:10px 16px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else 'box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;'}}}
+.stButton>button p,.stButton>button span,.stButton>button div{{color:#ffffff !important;}}
+.stButton>button:hover{{opacity:0.88 !important;transform:translateY(-1px) !important;}}
 .stDownloadButton>button{{background:linear-gradient(135deg,{T['btn_bg']},{T['accent2']}) !important;color:#ffffff !important;border:none !important;border-radius:10px !important;font-family:'Outfit',sans-serif !important;font-weight:600 !important;font-size:12px !important;padding:10px 16px !important;{'box-shadow:0 0 20px rgba(124,58,237,0.3) !important;' if D else 'box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;'}}}
-.stDownloadButton>button *{{color:#ffffff !important;}}
+.stDownloadButton>button,.stDownloadButton>button *,.stDownloadButton>button p,.stDownloadButton>button span,.stDownloadButton>button div{{color:#ffffff !important;}}
 .stDownloadButton>button:hover{{opacity:0.88 !important;transform:translateY(-1px) !important;}}
 .stTextInput>div>div>input{{background:{T['input_bg']} !important;color:{T['input_color']} !important;border:1px solid {T['input_border']} !important;border-radius:8px !important;font-family:'JetBrains Mono',monospace !important;font-size:11px !important;}}
 .control-wrap{{background:{T['card_bg']};border:1px solid {T['card_border']};border-radius:12px;padding:16px 20px;margin-bottom:20px;position:relative;z-index:5;}}
