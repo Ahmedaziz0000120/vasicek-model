@@ -663,7 +663,7 @@ const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window
     }
 
     const canvas = document.getElementById('bg');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     threeState.renderer = renderer;
     renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
