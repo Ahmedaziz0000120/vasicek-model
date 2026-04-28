@@ -16,6 +16,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime
+import requests
+import re
+from bs4 import BeautifulSoup
 
 # ── Page Configuration ───────────────────────────────────────────────────────
 # Sets the browser tab title, uses the full screen width,
@@ -200,8 +203,6 @@ def load_data(path):
 def fetch_live_sbp_rate():
     """Scrape latest policy rate from SBP. Returns (rate_decimal, date_str, error_msg)."""
     try:
-        import requests, re
-        from bs4 import BeautifulSoup
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         r = requests.get("https://www.sbp.org.pk/m_policy/index.asp", headers=headers, timeout=8)
         soup = BeautifulSoup(r.text, 'html.parser')
